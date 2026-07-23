@@ -2,6 +2,7 @@ require('express-async-errors');
 const cors = require('cors');
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 
 const app = express();
 const blogsRouter = require('./controllers/blogs');
@@ -37,6 +38,11 @@ if (process.env.NODE_ENV === 'test') {
   const testingRouter = require('./controllers/testing');
   app.use('/api/testing', testingRouter);
 }
+
+app.use(express.static(path.join(process.cwd(), 'frontend/dist')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'frontend/dist/index.html'));
+});
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
