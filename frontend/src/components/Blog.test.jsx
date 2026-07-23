@@ -1,8 +1,22 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 import Blog from './Blog';
 
+const mockDispatch = vi.fn();
+
+vi.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
+  useSelector: () => ({ username: 'Voldemort', name: 'T. Valedro' }),
+}));
+
+vi.mock('../reducers/blogReducer', () => ({
+  updateBlog: (blog) => ({ type: 'UPDATE_BLOG', payload: blog }),
+  deleteBlog: (blog) => ({ type: 'DELETE_BLOG', payload: blog }),
+}));
+
 const blog = {
+  id: '1',
   title: 'Mergehelvetistä itään',
   author: 'M. Luukkainen',
   url: 'https://example.com',
@@ -12,42 +26,38 @@ const blog = {
     name: 'T. Valedro',
   },
 };
-const appUser = { ...blog.user };
 
 describe('Blog component', () => {
+  beforeEach(() => {
+    mockDispatch.mockClear();
+  });
+
   test('renders content', () => {
     render(<Blog blog={blog} />);
 
-    const element = screen.getByText(`${blog.title} ${blog.author}`);
-    expect(element).toBeDefined();
+    expect(screen.getByText(`${blog.title} ${blog.author}`)).toBeDefined();
   });
 
   test('renders extended content after clicking the button', async () => {
-    render(<Blog blog={blog} user={appUser} />);
+    render(<Blog blog={blog} />);
 
     const user = userEvent.setup();
-    const button = screen.getByText('View');
-    await user.click(button);
+    await user.click(screen.getByText('View'));
 
     expect(screen.getByText(`${blog.title} ${blog.author}`)).toBeDefined();
     expect(screen.getByText(`Likes ${blog.likes}`)).toBeDefined();
     expect(screen.getByText(blog.url)).toBeDefined();
-    expect(screen.getByText(appUser.name)).toBeDefined();
+    expect(screen.getByText(blog.user.name)).toBeDefined();
   });
 
-  test("'s like button calls handler-function properly", async () => {
-    const mockHandler = vi.fn();
-
-    render(<Blog blog={blog} likeHandler={mockHandler} user={appUser} />);
+  test('clicking like dispatches update action', async () => {
+    render(<Blog blog={blog} />);
 
     const user = userEvent.setup();
-    const expandButton = screen.getByText('View');
-    await user.click(expandButton);
+    await user.click(screen.getByText('View'));
+    await user.click(screen.getByText('Like'));
+    await user.click(screen.getByText('Like'));
 
-    const likeButton = screen.getByText('Like');
-    await user.click(likeButton);
-    await user.click(likeButton);
-
-    expect(mockHandler.mock.calls).toHaveLength(2);
+    expect(mockDispatch).toHaveBeenCalledTimes(2);
   });
 });
