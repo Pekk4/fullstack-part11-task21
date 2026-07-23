@@ -74,3 +74,23 @@ jobs:
       - name: Run unit tests
         working-directory: ./frontend
         run: npm test
+
+  deploy:
+    needs: [build_and_test_backend, build_and_test_frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger deployment
+        if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
+        run: curl ${{ secrets.RENDER_DEPLOY_HOOK }}
+
+  tag_release:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Bump version and tag it
+        if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
+        uses: anothrNick/github-tag-action@1.75.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
