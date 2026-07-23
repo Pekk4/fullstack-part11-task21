@@ -3,3 +3,69 @@
 Link to deployed app on Render: [bloglist](https://fullstack-part11-task21-backend.onrender.com/)
 
 Dummy user creds are testuser1/password123
+
+## Task 22
+
+The following branch ruleset will be committed as a separate [file](./exercises/master_ruleset.json) for PR:
+
+```JSON
+{
+  "id": 19629018,
+  "name": "master",
+  "target": "branch",
+  "source_type": "Repository",
+  "source": "Pekk4/fullstack-part11-task21",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "exclude": [],
+      "include": [
+        "~DEFAULT_BRANCH",
+        "refs/heads/master"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": false,
+        "required_status_checks": [
+          {
+            "context": "build_and_test_backend",
+            "integration_id": 15368
+          },
+          {
+            "context": "build_and_test_frontend",
+            "integration_id": 15368
+          }
+        ]
+      }
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews_on_push": false,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false,
+        "allowed_merge_methods": [
+          "merge",
+          "squash",
+          "rebase"
+        ]
+      }
+    }
+  ],
+  "bypass_actors": []
+}
+```
